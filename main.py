@@ -9,14 +9,27 @@ from requests import Response
 
 from parse_sign_qr_code import parse_sign_qr_code
 
-x_session_id = "V2-1-170eb92a-af81-4cb5-98f0-c3585b6c3d72.ODM1MzQ.1743185592841.PE_rwwEs-obuWYDB51sg7B-cfD4"
+class CustomSession(requests.Session):
+    def __init__(self, get_x_session_id_header_value):
+        super().__init__()
+        self.get_x_session_id_header_value = get_x_session_id_header_value  # 传入一个获取动态头部的函数
 
-session = requests.Session()
+    def request(self, method, url, *args, **kwargs):
+        # 确保 headers 存在
+        if 'headers' not in kwargs:
+            kwargs['headers'] = {}
+
+        kwargs['headers']['x-session-id'] = self.get_x_session_id_header_value()
+
+        return super().request(method, url, *args, **kwargs)
+
+x_session_id = ""
+
+session = CustomSession(lambda : x_session_id)
 session.headers.update({
     "origin": "https://mobile.guet.edu.cn",
     "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36",
     "sec-fetch-mode": "cors",
-    "x-session-id": x_session_id,
 })
 
 base_url = "https://courses.guet.edu.cn"
